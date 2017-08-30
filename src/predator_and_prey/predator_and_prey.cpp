@@ -110,15 +110,15 @@ void PredatorAndPrey::update()
                 if (!pred_die(rng)) {
                     /* Live another day */
                     new_field[coords] = creature;
-                }
-                /* Begin the hunt */
-                for (int i = -1; i <= 1; ++i) {
-                    for (int j = -1; j <= 1; ++j) {
-                        if (field[{x + i, y + j}].type == Creature::PREY &&
-                                pred_born(rng)) {
-                            /* Go for the kill */
-                            new_field[{x + i, y + j}] =
-                                Creature(Creature::PREDATOR);
+                    /* Begin the hunt */
+                    for (int i = -1; i <= 1; ++i) {
+                        for (int j = -1; j <= 1; ++j) {
+                            if (field[{x + i, y + j}].type == Creature::PREY &&
+                                    pred_born(rng)) {
+                                /* Go for the kill */
+                                new_field[{x + i, y + j}] =
+                                    Creature(Creature::PREDATOR);
+                            }
                         }
                     }
                 }
