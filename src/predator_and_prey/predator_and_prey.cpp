@@ -80,6 +80,7 @@ const Curses::Color &PredatorAndPrey::Creature::color() const
 }
 
 PredatorAndPrey::PredatorAndPrey(double prey_dr, double pred_dr, double pred_br) :
+    screen(0),
     curr_gen(0),
     rng(std::random_device()()),
     prey_die(prey_dr),
@@ -92,9 +93,7 @@ PredatorAndPrey::PredatorAndPrey(double prey_dr, double pred_dr, double pred_br)
     for (int x = 0; x < max_x; ++x) {
         for (int y = 0; y < max_y; ++y) {
             int t = rndint(rng);
-            if (t == 0 || t == 1) {
-                field[{x, y}] = Creature(t);
-            }
+            field[{x, y}] = Creature(t);
         }
     }
 }
@@ -133,6 +132,8 @@ void PredatorAndPrey::update()
                             }
                         }
                     }
+                } else {
+                    new_field[coords] = Creature(Creature::EMPTY);
                 }
                 break;
             case Creature::PREY:
@@ -152,10 +153,12 @@ void PredatorAndPrey::update()
                             }
                         }
                     }
+                } else {
+                    new_field[coords] = Creature(Creature::EMPTY);
                 }
                 break;
             case Creature::EMPTY:
-                /* Don't care */
+                new_field[coords] = Creature(Creature::EMPTY);
                 break;
         }
     }
@@ -172,11 +175,10 @@ void PredatorAndPrey::run(int gens)
 
 void PredatorAndPrey::draw()
 {
-    std::ostringstream ss;
-    ss << "Generation: " << curr_gen;
-    screen.clear_stats();
-    screen.print_stats(ss.str());
-    screen.clear_field();
+    //std::ostringstream ss;
+    //ss << "Generation: " << curr_gen;
+    //screen.clear_stats();
+    //screen.print_stats(ss.str());
     for (auto cell : field) {
         screen.print_point(cell.first.first, cell.first.second,
                 '*', cell.second.color());
