@@ -113,6 +113,11 @@ void PredatorAndPrey::update()
                     /* Begin the hunt */
                     for (int i = -1; i <= 1; ++i) {
                         for (int j = -1; j <= 1; ++j) {
+                            if (x + i > screen.get_max_x() ||
+                                    y + j > screen.get_max_y()) {
+                                /* Out of bounds */
+                                continue;
+                            }
                             if (field[{x + i, y + j}].type == Creature::PREY &&
                                     pred_born(rng)) {
                                 /* Go for the kill */
@@ -130,6 +135,11 @@ void PredatorAndPrey::update()
                     /* Look for empty spaces to reproduce */
                     for (int i = -1; i <= 1; ++i) {
                         for (int j = -1; j <= 1; ++j) {
+                            if (x + i > screen.get_max_x() ||
+                                    y + j > screen.get_max_y()) {
+                                /* Out of bounds */
+                                continue;
+                            }
                             if (field[{x + i, y + j}].type == Creature::EMPTY) {
                                 /* Reproduce */
                                 new_field[{x + i, y + j}] =
