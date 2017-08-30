@@ -22,8 +22,9 @@ private:
         enum CreatureType { PREDATOR, PREY, EMPTY };
 
         Creature();
-        Creature(CreatureType type_);
-        Creature(int type_);
+        explicit Creature(CreatureType type_);
+        explicit Creature(int type_);
+
         const Curses::Color &color() const;
 
         CreatureType type;
@@ -113,54 +114,57 @@ void PredatorAndPrey::update()
         int x = coords.first;
         int y = coords.second;
         Creature creature = cell.second;
-        switch (creature.type) {
-            case Creature::PREDATOR:
-                if (!pred_die(rng)) {
-                    /* Live another day */
-                    new_field[coords] = creature;
-                    /* Begin the hunt */
-                    for (int i = -1; i <= 1; ++i) {
-                        for (int j = -1; j <= 1; ++j) {
-                            if (out_of_screen(x + i, y + j)) {
-                                continue;
-                            }
-                            if (field[{x + i, y + j}].type == Creature::PREY &&
-                                    pred_born(rng)) {
-                                /* Go for the kill */
-                                new_field[{x + i, y + j}] =
-                                    Creature(Creature::PREDATOR);
-                            }
+        Creature next_state;
+        if (creature.type == Creature::PREDATOR) {
+            if (pred_die(rng)) {
+                /* Dead */
+                next_state = Creature(Creature::EMPTY);
+            } else {
+                /* Live another day */
+                next_state = creature;
+            }
+        } else if (creature.type == Creature::PREY) {
+            if (prey_die(rng)) {
+                next_state = Creature(Creature::EMPTY);
+            } else {
+                bool hunted = false;
+                /* Check for predators around that may hunt */
+                for (int i = -1; i <= 1 && !hunted; ++i) {
+                    for (int j = -1; j <= 1 && !hunted; ++j) {
+                        if (!out_of_screen(x + i, y + j) &&
+                                field[{x + i, y + j}].type == Creature::PREDATOR
+                                && pred_born(rng)) {
+                            /* Predator kills */
+                            hunted = true;
                         }
                     }
-                } else {
-                    new_field[coords] = Creature(Creature::EMPTY);
                 }
-                break;
-            case Creature::PREY:
-                if (!prey_die(rng)) {
-                    /* Live another day */
-                    new_field[coords] = creature;
-                    /* Look for empty spaces to reproduce */
-                    for (int i = -1; i <= 1; ++i) {
-                        for (int j = -1; j <= 1; ++j) {
-                            if (out_of_screen(x + i, y + j)) {
-                                continue;
-                            }
-                            if (field[{x + i, y + j}].type == Creature::EMPTY) {
-                                /* Reproduce */
-                                new_field[{x + i, y + j}] =
-                                    Creature(Creature::PREY);
-                            }
-                        }
+                if (hunted) {
+                    next_state = Creature(Creature::PREDATOR);
+                } else {
+                    next_state = creature;
+                }
+            }
+        } else {
+            /* Creature::EMPTY */
+            bool reproduced = false;
+            /* Check for preys around that will reproduce */
+            for (int i = -1; i <= 1 && !reproduced; ++i) {
+                for (int j = -1; j <= 1 && !reproduced; ++j) {
+                    if (!out_of_screen(x + i, y + j) &&
+                            field[{x + i, y + j}].type == Creature::PREY) {
+                        reproduced = true;
                     }
-                } else {
-                    new_field[coords] = Creature(Creature::EMPTY);
                 }
-                break;
-            case Creature::EMPTY:
-                new_field[coords] = Creature(Creature::EMPTY);
-                break;
+            }
+            if (reproduced) {
+                next_state = Creature(Creature::PREY);
+            } else {
+                /* Stays empty */
+                next_state = creature;
+            }
         }
+        new_field[coords] = next_state;
     }
     field = std::move(new_field);
     ++curr_gen;
@@ -196,8 +200,8 @@ int main(int argc, char **argv)
     PredatorAndPrey automaton;
     const int max_gen = 10000;
     while (automaton.get_curr_gen() < max_gen) {
-        automaton.run(1);
         automaton.draw();
+        automaton.run(1);
     }
     return 0;
 }
