@@ -2,6 +2,7 @@
 #define SCREEN_H
 
 #include <ncurses.h>
+#include <string>
 
 namespace Curses {
 
@@ -25,14 +26,20 @@ public:
 
 class Screen {
 public:
-    Screen(int stats_height_ = 2);
+    Screen(int stats_height_ = 1);
     ~Screen();
 
     Screen(const Screen &) = delete;
     Screen &operator=(const Screen &) = delete;
 
-    void draw_point(int x, int y, char sym, Color color);
-    void redraw_all();
+    void clear_field();
+    void clear_stats();
+    void print_point(int x, int y, char sym, Color color);
+    void print_stats(std::string &&str);
+    void refresh_all();
+
+    int get_max_x() const;
+    int get_max_y() const;
 private:
     WINDOW *field;
     WINDOW *stats;

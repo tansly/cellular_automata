@@ -2,6 +2,7 @@
 
 #include <ncurses.h>
 #include <stdexcept>
+#include <string>
 
 namespace Curses {
 
@@ -56,7 +57,6 @@ Screen::Screen(int stats_height_) :
     getmaxyx(stdscr, max_y, max_x);
     field = newwin(max_y - stats_height, max_x, 0, 0);
     stats = newwin(stats_height, max_x, max_y - stats_height, 0);
-    box(stats, 0, 0);
     refresh();
     wrefresh(field);
     wrefresh(stats);
@@ -67,7 +67,27 @@ Screen::~Screen()
     endwin();
 }
 
-void Screen::redraw_all()
+void Screen::clear_field()
+{
+    wclear(field);
+}
+
+void Screen::clear_stats()
+{
+    wclear(stats);
+}
+
+void Screen::print_point(int x, int y, char sym, Color color)
+{
+    mvwaddch(field, y, x, sym | COLOR_PAIR(color.pair_num));
+}
+
+void Screen::print_stats(std::string &&str)
+{
+    wprintw(stats, "%s", str.c_str());
+}
+
+void Screen::refresh_all()
 {
     int new_x, new_y;
     getmaxyx(stdscr, new_y, new_x);
@@ -77,19 +97,20 @@ void Screen::redraw_all()
         wresize(field, max_y - stats_height, max_x);
         wresize(stats, stats_height, max_x);
         mvwin(stats, max_y - stats_height, 0);
-        wclear(stdscr);
-        wclear(field);
-        wclear(stats);
-        box(stats, 0, 0);
     }
     refresh();
     wrefresh(field);
     wrefresh(stats);
 }
 
-void Screen::draw_point(int x, int y, char sym, Color color)
+int Screen::get_max_x() const
 {
-    mvwaddch(field, y, x, sym | COLOR_PAIR(color.pair_num));
+    return max_x;
+}
+
+int Screen::get_max_y() const
+{
+    return max_y;
 }
 
 };
