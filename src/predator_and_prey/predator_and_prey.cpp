@@ -29,6 +29,8 @@ private:
         CreatureType type;
     };
 
+    bool out_of_screen(int x, int y) const;
+
     Curses::Screen screen;
     std::map<std::pair<int, int>, Creature> field;
     int curr_gen;
@@ -97,6 +99,13 @@ PredatorAndPrey::PredatorAndPrey(double prey_dr, double pred_dr, double pred_br)
     }
 }
 
+bool PredatorAndPrey::out_of_screen(int x, int y) const
+{
+    return x < 0 || y < 0 ||
+        x > screen.get_max_x() ||
+        y > screen.get_max_y();
+}
+
 void PredatorAndPrey::update()
 {
     decltype(field) new_field;
@@ -113,9 +122,7 @@ void PredatorAndPrey::update()
                     /* Begin the hunt */
                     for (int i = -1; i <= 1; ++i) {
                         for (int j = -1; j <= 1; ++j) {
-                            if (x + i > screen.get_max_x() ||
-                                    y + j > screen.get_max_y()) {
-                                /* Out of bounds */
+                            if (out_of_screen(x + i, y + j)) {
                                 continue;
                             }
                             if (field[{x + i, y + j}].type == Creature::PREY &&
@@ -135,9 +142,7 @@ void PredatorAndPrey::update()
                     /* Look for empty spaces to reproduce */
                     for (int i = -1; i <= 1; ++i) {
                         for (int j = -1; j <= 1; ++j) {
-                            if (x + i > screen.get_max_x() ||
-                                    y + j > screen.get_max_y()) {
-                                /* Out of bounds */
+                            if (out_of_screen(x + i, y + j)) {
                                 continue;
                             }
                             if (field[{x + i, y + j}].type == Creature::EMPTY) {
