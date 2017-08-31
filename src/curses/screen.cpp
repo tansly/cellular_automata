@@ -42,8 +42,7 @@ void init_color_pairs()
 
 };
 
-Screen::Screen(int stats_height_) :
-    stats_height(stats_height_)
+Screen::Screen()
 {
     initscr();
     if (has_colors() == FALSE) {
@@ -54,12 +53,8 @@ Screen::Screen(int stats_height_) :
     init_color_pairs();
     curs_set(0);
     noecho();
-    getmaxyx(stdscr, max_y, max_x);
-    field = newwin(max_y - stats_height, max_x, 0, 0);
-    stats = newwin(stats_height, max_x, max_y - stats_height, 0);
     refresh();
-    wrefresh(field);
-    wrefresh(stats);
+    getmaxyx(stdscr, max_y, max_x);
 }
 
 Screen::~Screen()
@@ -67,40 +62,19 @@ Screen::~Screen()
     endwin();
 }
 
-void Screen::clear_field()
-{
-    wclear(field);
-}
-
-void Screen::clear_stats()
-{
-    wclear(stats);
-}
-
 void Screen::print_point(int x, int y, char sym, Color color)
 {
-    mvwaddch(field, y, x, sym | COLOR_PAIR(color.pair_num));
+    mvaddch(y, x, sym | COLOR_PAIR(color.pair_num));
 }
 
-void Screen::print_stats(std::string &&str)
+void Screen::refresh_screen()
 {
-    wprintw(stats, "%s", str.c_str());
-}
-
-void Screen::refresh_all()
-{
-    int new_x, new_y;
-    getmaxyx(stdscr, new_y, new_x);
-    if (new_x != max_x || new_y != max_y) {
-        max_x = new_x;
-        max_y = new_y;
-        wresize(field, max_y - stats_height, max_x);
-        wresize(stats, stats_height, max_x);
-        mvwin(stats, max_y - stats_height, 0);
-    }
     refresh();
-    wrefresh(field);
-    wrefresh(stats);
+}
+
+void Screen::clear_screen()
+{
+    clear();
 }
 
 int Screen::get_max_x() const

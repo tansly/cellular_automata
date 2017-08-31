@@ -4,17 +4,17 @@
 #include <memory>
 #include <map>
 #include <random>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
 
 class PredatorAndPrey {
 public:
-    explicit PredatorAndPrey(double prey_dr = 0.85, double predator_dr = 0.85);
+    explicit PredatorAndPrey(int size_x_, int size_y_, double prey_dr = 0.85,
+            double predator_dr = 0.85);
     void update();
     void run(int gens);
-    void draw();
+    void draw(Curses::Screen &screen);
 
     int get_curr_gen() const;
 private:
@@ -24,16 +24,13 @@ private:
         explicit Creature(CreatureType type_ = Creature::EMPTY);
 
         const Curses::Color &color() const;
+        char symbol() const;
 
         CreatureType type;
     };
 
     bool out_of_field(int x, int y) const;
 
-    Curses::Screen screen;
-    /* Field size is bound to the screen size at startup and does not change.
-     * TODO: Implement resizing to match the screen size.
-     */
     const int size_x;
     const int size_y;
     Grid::Grid<Creature> field;
@@ -60,10 +57,15 @@ const Curses::Color &PredatorAndPrey::Creature::color() const
     }
 }
 
-PredatorAndPrey::PredatorAndPrey(double prey_dr, double predator_dr) :
-    screen(0),
-    size_x(screen.get_max_x() + 1),
-    size_y(screen.get_max_y() + 1),
+char PredatorAndPrey::Creature::symbol() const
+{
+    return '*';
+}
+
+PredatorAndPrey::PredatorAndPrey(int size_x_, int size_y_, double prey_dr,
+        double predator_dr) :
+    size_x(size_x_),
+    size_y(size_y_),
     field(size_x, size_y),
     curr_gen(0),
     rng(std::random_device()()),
@@ -175,25 +177,9 @@ void PredatorAndPrey::run(int gens)
     }
 }
 
-void PredatorAndPrey::draw()
+void PredatorAndPrey::draw(Curses::Screen &screen)
 {
-    /* TODO: Print statistics to some target. Either to an external file,
-     * or stderr or on the screen if there is a way to print on the ncurses
-     * window without clearing the window everytime. (Clearing causes the whole
-     * terminal to flicker
-     */
-    /* The minimum of the field size or the screen size should be drawn.
-     * TODO: Implement proper resizing of the field to match the screen size
-     * so this kind of stuff is not necessary.
-     */
-    int bound_x = std::min(size_x, screen.get_max_x() + 1);
-    int bound_y = std::min(size_y, screen.get_max_y() + 1);
-    for (int x = 0; x < bound_x; ++x) {
-        for (int y = 0; y < bound_y; ++y) {
-            screen.print_point(x, y, '*', field(x, y).color());
-        }
-    }
-    screen.refresh_all();
+    screen.draw_grid(field);
 }
 
 int PredatorAndPrey::get_curr_gen() const
@@ -203,11 +189,12 @@ int PredatorAndPrey::get_curr_gen() const
 
 int main(int argc, char **argv)
 {
-    PredatorAndPrey automaton;
+    Curses::Screen screen;
+    PredatorAndPrey automaton(screen.get_max_x(), screen.get_max_y());
     const int max_gen = 10000;
     while (automaton.get_curr_gen() < max_gen) {
-        automaton.draw();
-        automaton.run(1);
+        automaton.draw(screen);
+        automaton.update();
     }
     return 0;
 }
