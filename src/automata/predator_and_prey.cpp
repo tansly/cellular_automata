@@ -1,46 +1,10 @@
+#include "automata/predator_and_prey.h"
 #include "curses/screen.h"
 #include "grid/grid.h"
 
-#include <iostream>
-#include <memory>
-#include <map>
 #include <random>
-#include <stdexcept>
-#include <string>
-#include <unistd.h>
-#include <utility>
 
-class PredatorAndPrey {
-public:
-    explicit PredatorAndPrey(int size_x_, int size_y_, double prey_dr = 0.85,
-            double predator_dr = 0.85);
-    void update();
-    void run(int gens);
-    void draw(Curses::Screen &screen);
-
-    int get_curr_gen() const;
-private:
-    struct Creature {
-        enum CreatureType { PREDATOR, PREY, EMPTY };
-
-        explicit Creature(CreatureType type_ = Creature::EMPTY);
-
-        const Curses::Color &color() const;
-        char symbol() const;
-
-        CreatureType type;
-    };
-
-    bool out_of_field(int x, int y) const;
-
-    const int size_x;
-    const int size_y;
-    Grid::Grid<Creature> field;
-    int curr_gen;
-    std::mt19937 rng;
-    std::bernoulli_distribution prey_disperse;
-    std::bernoulli_distribution predator_disperse;
-};
+namespace Automata {
 
 PredatorAndPrey::Creature::Creature(CreatureType type_) :
     type(type_)
@@ -189,24 +153,4 @@ int PredatorAndPrey::get_curr_gen() const
     return curr_gen;
 }
 
-int main(int argc, char **argv)
-{
-    Curses::Screen screen;
-    PredatorAndPrey automaton(screen.get_max_x(), screen.get_max_y());
-    const int max_gen = 10000;
-    int rate = 100000;
-    if (argc == 2) {
-        try {
-            rate = std::stoi(std::string(argv[1]));
-        } catch (const std::invalid_argument &ex) {
-            std::cerr << "Invalid argument" << std::endl;
-            return 1;
-        }
-    }
-    while (automaton.get_curr_gen() < max_gen) {
-        usleep(rate);
-        automaton.draw(screen);
-        automaton.update();
-    }
-    return 0;
-}
+};
