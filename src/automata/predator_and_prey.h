@@ -2,7 +2,7 @@
 #define PREDATOR_AND_PREY_H
 
 #include "curses/screen.h"
-#include "grid/grid.h"
+#include "grid/toroidal_grid.h"
 
 #include <random>
 
@@ -33,7 +33,7 @@ private:
 
     const int size_x;
     const int size_y;
-    Grid::Grid<Creature> field;
+    Grid::ToroidalGrid<Creature> field;
     int curr_gen;
     std::mt19937 rng;
     std::bernoulli_distribution prey_disperse;

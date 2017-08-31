@@ -80,8 +80,7 @@ void PredatorAndPrey::update()
                 /* Check the neighbors */
                 for (int i = -1; i <= 1; ++i) {
                     for (int j = -1; j <= 1; ++j) {
-                        if (!out_of_field(x + i, y + j) &&
-                                field(x + i, y + j).type == Creature::EMPTY) {
+                        if (field(x + i, y + j).type == Creature::EMPTY) {
                             if (prey_disperse(rng)) {
                                 new_field(x + i, y + j) =
                                     Creature(Creature::PREY);
@@ -100,8 +99,7 @@ void PredatorAndPrey::update()
                 /* Check the neighbors */
                 for (int i = -1; i <= 1; ++i) {
                     for (int j = -1; j <= 1; ++j) {
-                        if (!out_of_field(x + i, y + j) &&
-                                field(x + i, y + j).type == Creature::PREY) {
+                        if (field(x + i, y + j).type == Creature::PREY) {
                             if (predator_disperse(rng)) {
                                 new_field(x + i, y + j) =
                                     Creature(Creature::PREDATOR);
@@ -121,8 +119,7 @@ void PredatorAndPrey::update()
                 bool has_contact = false;
                 for (int i = -1; i <= 1 && !has_contact; ++i) {
                     for (int j = -1; j <= 1 && !has_contact; ++j) {
-                        if (!out_of_field(x + i, y + j) &&
-                                new_field(x + i, y + j).type == Creature::PREY) {
+                        if (new_field(x + i, y + j).type == Creature::PREY) {
                             has_contact = true;
                         }
                     }

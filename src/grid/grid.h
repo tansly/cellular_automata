@@ -3,10 +3,6 @@
 
 #include <vector>
 
-/* TODO: Implement resizing?
- * Do bounds checking (maybe not)?
- */
-
 namespace Grid {
 
 template <class T>
