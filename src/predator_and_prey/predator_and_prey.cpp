@@ -1,4 +1,5 @@
 #include "curses/screen.h"
+#include "grid/grid.h"
 
 #include <memory>
 #include <map>
@@ -10,8 +11,7 @@
 
 class PredatorAndPrey {
 public:
-    PredatorAndPrey(double prey_dr_ = 0.2, double pred_dr_ = 0.1,
-            double pred_br_ = 0.8);
+    explicit PredatorAndPrey(double prey_dr = 0.85, double predator_dr = 0.85);
     void update();
     void run(int gens);
     void draw();
@@ -21,51 +21,31 @@ private:
     struct Creature {
         enum CreatureType { PREDATOR, PREY, EMPTY };
 
-        Creature();
-        explicit Creature(CreatureType type_);
-        explicit Creature(int type_);
+        explicit Creature(CreatureType type_ = Creature::EMPTY);
 
         const Curses::Color &color() const;
 
         CreatureType type;
     };
 
-    bool out_of_screen(int x, int y) const;
+    bool out_of_field(int x, int y) const;
 
     Curses::Screen screen;
-    std::map<std::pair<int, int>, Creature> field;
+    /* Field size is bound to the screen size at startup and does not change.
+     * TODO: Implement resizing to match the screen size.
+     */
+    const int size_x;
+    const int size_y;
+    Grid::Grid<Creature> field;
     int curr_gen;
     std::mt19937 rng;
-    std::bernoulli_distribution prey_die;
-    std::bernoulli_distribution pred_die;
-    std::bernoulli_distribution pred_born;
+    std::bernoulli_distribution prey_disperse;
+    std::bernoulli_distribution predator_disperse;
 };
 
-PredatorAndPrey::Creature::Creature() :
-    type(EMPTY)
+PredatorAndPrey::Creature::Creature(CreatureType type_) :
+    type(type_)
 {
-}
-
-PredatorAndPrey::Creature::Creature(CreatureType type_)
-{
-    type = type_;
-}
-
-PredatorAndPrey::Creature::Creature(int type_)
-{
-    switch (type_) {
-        case 0:
-            type = PREDATOR;
-            break;
-        case 1:
-            type = PREY;
-            break;
-        case 2:
-            type = EMPTY;
-            break;
-        default:
-            throw std::invalid_argument("Bad creature type");
-    }
 }
 
 const Curses::Color &PredatorAndPrey::Creature::color() const
@@ -80,94 +60,112 @@ const Curses::Color &PredatorAndPrey::Creature::color() const
     }
 }
 
-PredatorAndPrey::PredatorAndPrey(double prey_dr, double pred_dr, double pred_br) :
+PredatorAndPrey::PredatorAndPrey(double prey_dr, double predator_dr) :
     screen(0),
+    size_x(screen.get_max_x() + 1),
+    size_y(screen.get_max_y() + 1),
+    field(size_x, size_y),
     curr_gen(0),
     rng(std::random_device()()),
-    prey_die(prey_dr),
-    pred_die(pred_dr),
-    pred_born(pred_br)
+    prey_disperse(prey_dr),
+    predator_disperse(predator_dr)
 {
-    int max_x = screen.get_max_x();
-    int max_y = screen.get_max_y();
-    std::uniform_int_distribution<int> rndint(0, 2);
-    for (int x = 0; x < max_x; ++x) {
-        for (int y = 0; y < max_y; ++y) {
+    std::uniform_int_distribution<int> rndint(0, 3);
+    for (int x = 0; x < size_x; ++x) {
+        for (int y = 0; y < size_y; ++y) {
+            /* Initialize with 1/4 prey, 1/4 predator and 1/2 empty */
             int t = rndint(rng);
-            field[{x, y}] = Creature(t);
+            switch (t) {
+                case 0:
+                    field(x, y) = Creature(Creature::PREDATOR);
+                    break;
+                case 1:
+                    field(x, y) = Creature(Creature::PREY);
+                    break;
+                case 2:
+                    /* FALLTHROUGH */
+                case 3:
+                    field(x, y) = Creature(Creature::EMPTY);
+                    break;
+            }
         }
     }
 }
 
-bool PredatorAndPrey::out_of_screen(int x, int y) const
+bool PredatorAndPrey::out_of_field(int x, int y) const
 {
     return x < 0 || y < 0 ||
-        x > screen.get_max_x() ||
-        y > screen.get_max_y();
+        x >= size_x ||
+        y >= size_y;
 }
 
+/* Algorithm from: http://www.rubinghscience.org/evol/spirals1.html
+ */
 void PredatorAndPrey::update()
 {
-    decltype(field) new_field;
-    for (auto cell : field) {
-        auto coords = cell.first;
-        int x = coords.first;
-        int y = coords.second;
-        Creature creature = cell.second;
-        Creature next_state;
-        if (creature.type == Creature::PREDATOR) {
-            if (pred_die(rng)) {
-                /* Dead */
-                next_state = Creature(Creature::EMPTY);
-            } else {
-                /* Live another day */
-                next_state = creature;
-            }
-        } else if (creature.type == Creature::PREY) {
-            if (prey_die(rng)) {
-                next_state = Creature(Creature::EMPTY);
-            } else {
-                bool hunted = false;
-                /* Check for predators around that may hunt */
-                for (int i = -1; i <= 1 && !hunted; ++i) {
-                    for (int j = -1; j <= 1 && !hunted; ++j) {
-                        if (!out_of_screen(x + i, y + j) &&
-                                field[{x + i, y + j}].type == Creature::PREDATOR
-                                && pred_born(rng)) {
-                            /* Predator kills */
-                            hunted = true;
+    decltype(field) new_field(size_x, size_y);
+    /* STEP 1: Disperse preys */
+    for (int x = 0; x < size_x; ++x) {
+        for (int y = 0; y < size_y; ++y) {
+            if (field(x, y).type == Creature::PREY) {
+                new_field(x, y) = Creature(Creature::PREY);
+                /* Check the neighbors */
+                for (int i = -1; i <= 1; ++i) {
+                    for (int j = -1; j <= 1; ++j) {
+                        if (!out_of_field(x + i, y + j) &&
+                                field(x + i, y + j).type == Creature::EMPTY) {
+                            if (prey_disperse(rng)) {
+                                new_field(x + i, y + j) =
+                                    Creature(Creature::PREY);
+                            }
                         }
                     }
                 }
-                if (hunted) {
-                    next_state = Creature(Creature::PREDATOR);
-                } else {
-                    next_state = creature;
-                }
             }
-        } else {
-            /* Creature::EMPTY */
-            bool reproduced = false;
-            /* Check for preys around that will reproduce */
-            for (int i = -1; i <= 1 && !reproduced; ++i) {
-                for (int j = -1; j <= 1 && !reproduced; ++j) {
-                    if (!out_of_screen(x + i, y + j) &&
-                            field[{x + i, y + j}].type == Creature::PREY) {
-                        reproduced = true;
+        }
+    }
+    /* STEP 2: Disperse predators */
+    for (int x = 0; x < size_x; ++x) {
+        for (int y = 0; y < size_y; ++y) {
+            if (field(x, y).type == Creature::PREDATOR) {
+                new_field(x, y) = Creature(Creature::PREDATOR);
+                /* Check the neighbors */
+                for (int i = -1; i <= 1; ++i) {
+                    for (int j = -1; j <= 1; ++j) {
+                        if (!out_of_field(x + i, y + j) &&
+                                field(x + i, y + j).type == Creature::PREY) {
+                            if (predator_disperse(rng)) {
+                                new_field(x + i, y + j) =
+                                    Creature(Creature::PREDATOR);
+                            }
+                        }
                     }
                 }
             }
-            if (reproduced) {
-                next_state = Creature(Creature::PREY);
-            } else {
-                /* Stays empty */
-                next_state = creature;
+        }
+    }
+    /* STEP 3: Remove from the new-situation field all predators that do
+     * not have a prey in at least one neighbour square.
+     */
+    for (int x = 0; x < size_x; ++x) {
+        for (int y = 0; y < size_y; ++y) {
+            if (new_field(x, y).type == Creature::PREDATOR) {
+                bool has_contact = false;
+                for (int i = -1; i <= 1 && !has_contact; ++i) {
+                    for (int j = -1; j <= 1 && !has_contact; ++j) {
+                        if (!out_of_field(x + i, y + j) &&
+                                new_field(x + i, y + j).type == Creature::PREY) {
+                            has_contact = true;
+                        }
+                    }
+                }
+                if (!has_contact) {
+                    new_field(x, y) = Creature(Creature::EMPTY);
+                }
             }
         }
-        new_field[coords] = next_state;
     }
     field = std::move(new_field);
-    ++curr_gen;
 }
 
 void PredatorAndPrey::run(int gens)
@@ -179,13 +177,21 @@ void PredatorAndPrey::run(int gens)
 
 void PredatorAndPrey::draw()
 {
-    //std::ostringstream ss;
-    //ss << "Generation: " << curr_gen;
-    //screen.clear_stats();
-    //screen.print_stats(ss.str());
-    for (auto cell : field) {
-        screen.print_point(cell.first.first, cell.first.second,
-                '*', cell.second.color());
+    /* TODO: Print statistics to some target. Either to an external file,
+     * or stderr or on the screen if there is a way to print on the ncurses
+     * window without clearing the window everytime. (Clearing causes the whole
+     * terminal to flicker
+     */
+    /* The minimum of the field size or the screen size should be drawn.
+     * TODO: Implement proper resizing of the field to match the screen size
+     * so this kind of stuff is not necessary.
+     */
+    int bound_x = std::min(size_x, screen.get_max_x() + 1);
+    int bound_y = std::min(size_y, screen.get_max_y() + 1);
+    for (int x = 0; x < bound_x; ++x) {
+        for (int y = 0; y < bound_y; ++y) {
+            screen.print_point(x, y, '*', field(x, y).color());
+        }
     }
     screen.refresh_all();
 }

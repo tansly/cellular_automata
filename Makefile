@@ -6,7 +6,7 @@ LDFLAGS=-lncurses
 
 ./src/curses/screen.o: ./src/curses/screen.cpp ./src/curses/screen.h
 
-./src/predator_and_prey/predator_and_prey.o: ./src/predator_and_prey/predator_and_prey.cpp
+./src/predator_and_prey/predator_and_prey.o: ./src/predator_and_prey/predator_and_prey.cpp ./src/grid/grid.h
 
 test_screen.out: ./src/curses/screen.o ./src/curses/screen.h ./src/test/test_screen.o
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) ./src/curses/screen.o ./src/test/test_screen.o -o ./test_screen.out
