@@ -146,7 +146,7 @@ void PredatorAndPrey::draw(Curses::Screen &screen)
     screen.draw_grid(field);
 }
 
-int PredatorAndPrey::get_curr_gen() const
+unsigned long PredatorAndPrey::get_curr_gen() const
 {
     return curr_gen;
 }

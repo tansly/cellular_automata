@@ -13,7 +13,7 @@ public:
     void update();
     void draw(Curses::Screen &screen) const;
 
-    int get_curr_gen() const;
+    unsigned long get_curr_gen() const;
 private:
     struct Cell {
         enum State { ALIVE, DEAD };
@@ -29,7 +29,7 @@ private:
     const int size_x;
     const int size_y;
     Grid::ToroidalGrid<Cell> grid;
-    int curr_gen;
+    unsigned long curr_gen;
 };
 
 };

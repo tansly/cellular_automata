@@ -16,7 +16,7 @@ public:
     void run(int gens);
     void draw(Curses::Screen &screen);
 
-    int get_curr_gen() const;
+    unsigned long get_curr_gen() const;
 private:
     struct Creature {
         enum CreatureType { PREDATOR, PREY, EMPTY };
@@ -34,7 +34,7 @@ private:
     const int size_x;
     const int size_y;
     Grid::ToroidalGrid<Creature> field;
-    int curr_gen;
+    unsigned long curr_gen;
     std::mt19937 rng;
     std::bernoulli_distribution prey_disperse;
     std::bernoulli_distribution predator_disperse;

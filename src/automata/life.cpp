@@ -84,7 +84,7 @@ void Life::draw(Curses::Screen &screen) const
     screen.draw_grid(grid);
 }
 
-int Life::get_curr_gen() const
+unsigned long Life::get_curr_gen() const
 {
     return curr_gen;
 }
