@@ -131,6 +131,7 @@ void PredatorAndPrey::update()
         }
     }
     field = std::move(new_field);
+    ++curr_gen;
 }
 
 void PredatorAndPrey::run(int gens)
