@@ -2,6 +2,7 @@
 #include "curses/screen.h"
 #include "grid/toroidal_grid.h"
 
+#include <algorithm>
 #include <random>
 
 namespace Automata {
@@ -29,49 +30,51 @@ Life::Life(int size_x_, int size_y_) :
 {
     std::mt19937 rng {std::random_device()()};
     std::uniform_int_distribution<int> rndint(0, 2);
-    for (int x = 0; x < size_x; ++x) {
-        for (int y = 0; y < size_y; ++y) {
-            int t = rndint(rng);
-            switch (t) {
-                case 0:
-                    grid(x, y) = Cell(Cell::ALIVE);
-                    break;
-                case 1:
-                    /* FALLTHROUGH */
-                case 2:
-                    grid(x, y) = Cell(Cell::DEAD);
-                    break;
-            }
+    for (auto it = grid.begin(); it != grid.end(); ++it) {
+        int t = rndint(rng);
+        switch (t) {
+            case 0:
+                *it = Cell(Cell::ALIVE);
+                break;
+            case 1:
+                /* FALLTHROUGH */
+            case 2:
+                *it = Cell(Cell::DEAD);
+                break;
         }
     }
 }
 
 void Life::update()
 {
+    /* TODO: Should we allocate the temporary grid for once during object
+     * construction (and reuse it) or is this fine?
+     * Does this cause any noticeable overhead?
+     */
     decltype(grid) new_grid(size_x, size_y);
-    for (int x = 0; x < size_x; ++x) {
-        for (int y = 0; y < size_y; ++y) {
-            int neighbors = 0;
-            for (int i = -1; i <= 1; ++i) {
-                for (int j = -1; j <= 1; ++j) {
-                    if (i == 0 && j == 0) {
-                        continue;
-                    }
-                    if (grid(x + i, y + j).state == Cell::ALIVE) {
-                        ++neighbors;
-                    }
-                }
-            }
-            if (grid(x, y).state == Cell::ALIVE) {
-                if (neighbors < 2 || neighbors > 3) {
-                    new_grid(x, y) = Cell(Cell::DEAD);
-                } else {
-                    new_grid(x, y) = Cell(Cell::ALIVE);
-                }
+    auto it = grid.begin();
+    auto new_it = new_grid.begin();
+    for (/* it, new_it */; it != grid.end(); ++it, ++new_it) {
+        /* TODO: We allocate a new vector on every iteration,
+         * and this is obviously inefficient.
+         * Think of something else here (if the allocation overhead is not negligible)
+         * while keeping the simplicity of this method. Would it be good if
+         * the grid method took a vector as reference from us and filled it, so
+         * we could create a vector here and reuse it at every iteration?
+         * Is there a better way?
+         */
+        auto neighbors = grid.moore_neighbors(it);
+        int neighbor_cnt = std::count_if(neighbors.begin(), neighbors.end(),
+                [](const Cell &cell){return cell.state == Cell::ALIVE;});
+        if (it->state == Cell::ALIVE) {
+            if (neighbor_cnt < 2 || neighbor_cnt > 3) {
+                *new_it = Cell(Cell::DEAD);
             } else {
-                if (neighbors == 3) {
-                    new_grid(x, y) = Cell(Cell::ALIVE);
-                }
+                *new_it = Cell(Cell::ALIVE);
+            }
+        } else {
+            if (neighbor_cnt == 3) {
+                *new_it = Cell(Cell::ALIVE);
             }
         }
     }
