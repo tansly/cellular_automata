@@ -100,5 +100,10 @@ void LifeLike::draw(Curses::Screen &screen) const
     screen.draw_grid(grid);
 }
 
+unsigned long LifeLike::get_curr_gen() const
+{
+    return curr_gen;
+}
+
 
 };
