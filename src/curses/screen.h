@@ -71,7 +71,6 @@ public:
     template <class T>
     void draw_grid(const Grid::Grid<T> &grid) const;
 private:
-
     void init_color_pairs() const;
     int max_x;
     int max_y;
