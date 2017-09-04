@@ -39,26 +39,10 @@ Color::Color(short fg_) :
 {
 }
 
-int Color::init_color_pair()
+int Color::init_color_pair() const
 {
     return init_pair(pair_num, fg, COLOR_BLACK);
 }
-
-namespace {
-
-void init_color_pairs()
-{
-    Color::Black.init_color_pair();
-    Color::Red.init_color_pair();
-    Color::Green.init_color_pair();
-    Color::Yellow.init_color_pair();
-    Color::Blue.init_color_pair();
-    Color::Magenta.init_color_pair();
-    Color::Cyan.init_color_pair();
-    Color::White.init_color_pair();
-}
-
-};
 
 Screen::Screen()
 {
@@ -103,6 +87,18 @@ int Screen::get_max_x() const
 int Screen::get_max_y() const
 {
     return max_y;
+}
+
+void Screen::init_color_pairs() const
+{
+    Color::Black.init_color_pair();
+    Color::Red.init_color_pair();
+    Color::Green.init_color_pair();
+    Color::Yellow.init_color_pair();
+    Color::Blue.init_color_pair();
+    Color::Magenta.init_color_pair();
+    Color::Cyan.init_color_pair();
+    Color::White.init_color_pair();
 }
 
 };

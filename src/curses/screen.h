@@ -28,9 +28,7 @@ namespace Curses {
 
 class Color {
 public:
-    Color(short fg_);
-    int init_color_pair();
-
+    Color() = delete;
     static Color Black;
     static Color Red;
     static Color Green;
@@ -40,8 +38,14 @@ public:
     static Color Cyan;
     static Color White;
 
+private:
+    Color(short fg_);
+    int init_color_pair() const;
+
     const short fg;
     const short pair_num;
+
+    friend class Screen;
 };
 
 class Screen {
@@ -68,6 +72,7 @@ public:
     void draw_grid(const Grid::Grid<T> &grid);
 private:
 
+    void init_color_pairs() const;
     int max_x;
     int max_y;
 };
