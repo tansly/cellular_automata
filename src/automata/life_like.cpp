@@ -22,7 +22,6 @@ char LifeLike::Cell::symbol() const
     return '*';
 }
 
-
 LifeLike::LifeLike(int nsize_x, int nsize_y, const std::string &rule) :
     size_x(nsize_x),
     size_y(nsize_y),
