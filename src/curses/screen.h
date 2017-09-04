@@ -59,9 +59,9 @@ public:
     int get_max_x() const;
     int get_max_y() const;
 
-    void print_point(int x, int y, char sym, Color color);
-    void refresh_screen();
-    void clear_screen();
+    void print_point(int x, int y, char sym, Color color) const;
+    void refresh_screen() const;
+    void clear_screen() const;
     /* Print a Grid of class T. The class T must provide two functions:
      * const Curses::Color &T::color() const;
      * char T::symbol() const;
@@ -69,7 +69,7 @@ public:
      * for the element.
      */
     template <class T>
-    void draw_grid(const Grid::Grid<T> &grid);
+    void draw_grid(const Grid::Grid<T> &grid) const;
 private:
 
     void init_color_pairs() const;
@@ -78,7 +78,7 @@ private:
 };
 
 template <class T>
-void Screen::draw_grid(const Grid::Grid<T> &grid)
+void Screen::draw_grid(const Grid::Grid<T> &grid) const
 {
     int bound_x = grid.get_size_x();
     int bound_y = grid.get_size_y();

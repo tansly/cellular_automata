@@ -64,17 +64,17 @@ Screen::~Screen()
     endwin();
 }
 
-void Screen::print_point(int x, int y, char sym, Color color)
+void Screen::print_point(int x, int y, char sym, Color color) const
 {
     mvaddch(y, x, sym | COLOR_PAIR(color.pair_num));
 }
 
-void Screen::refresh_screen()
+void Screen::refresh_screen() const
 {
     refresh();
 }
 
-void Screen::clear_screen()
+void Screen::clear_screen() const
 {
     clear();
 }
