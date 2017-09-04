@@ -21,6 +21,8 @@ const Curses::Color &PredatorAndPrey::Creature::color() const
         case EMPTY:
             return Curses::Color::Black;
     }
+    /* Not possible, suppress warning */
+    return Curses::Color::Black;
 }
 
 char PredatorAndPrey::Creature::symbol() const
