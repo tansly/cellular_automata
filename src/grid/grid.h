@@ -26,15 +26,20 @@ namespace Grid {
 template <class T>
 class Grid {
 public:
-    typedef typename std::vector<T>::iterator GridIterator;
+    using GridIterator = typename std::vector<T>::iterator;
+    using UnaryPredicate = bool (const T &a);
 
     Grid(int size_x_, int size_y_);
     virtual ~Grid();
 
     virtual T &operator()(int x, int y);
     virtual const T &operator()(int x, int y) const;
-    /* Get the Moore neigbors of a cell, omitting the center */
+    /* Get the Moore neighbors of a cell, omitting the center. */
     virtual std::vector<T> moore_neighbors(const GridIterator &it) const;
+    /* Count the Moore neighbors of a cell matching the given predicate,
+     * omitting the center.
+     */
+    virtual int moore_neighbors_cnt_if(const GridIterator &it, UnaryPredicate pred) const;
 
 
     auto begin();
@@ -117,6 +122,28 @@ std::vector<T> Grid<T>::moore_neighbors(const GridIterator &it) const
         }
     }
     return neighbors;
+}
+
+template <class T>
+int Grid<T>::moore_neighbors_cnt_if(const GridIterator &it, UnaryPredicate pred) const
+{
+    int v_pos = it - this->begin();
+    int x_pos = v_pos / size_y;
+    int y_pos = v_pos % size_y;
+    int cnt = 0;
+    for (int x = -1; x <= 1; ++x) {
+        for (int y = -1; y <= 1; ++y) {
+            if (x_pos + x < 0 || x_pos + x >= size_x ||
+                    y_pos + y < 0 || y_pos + y >= size_y ||
+                    (x == 0 && y == 0)) {
+                continue;
+            }
+            if (pred(this->operator()(x_pos + x, y_pos + y))) {
+                ++cnt;
+            }
+        }
+    }
+    return cnt;
 }
 
 template <class T>

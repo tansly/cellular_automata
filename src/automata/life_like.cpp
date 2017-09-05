@@ -89,16 +89,7 @@ void LifeLike::update()
     auto it = grid.begin();
     auto new_it = new_grid.begin();
     for (/* it, new_it */; it != grid.end(); ++it, ++new_it) {
-        /* TODO: We allocate a new vector on every iteration,
-         * and this is obviously inefficient.
-         * Think of something else here (if the allocation overhead is not negligible)
-         * while keeping the simplicity of this method. Would it be good if
-         * the grid method took a vector as reference from us and filled it, so
-         * we could create a vector here and reuse it at every iteration?
-         * Is there a better way?
-         */
-        auto neighbors = grid.moore_neighbors(it);
-        int neighbor_cnt = std::count_if(neighbors.begin(), neighbors.end(),
+        int neighbor_cnt = grid.moore_neighbors_cnt_if(it,
                 [](const Cell &cell){return cell.state == Cell::ALIVE;});
         if (it->state == Cell::ALIVE) {
             /* Alive cell, check for survival */

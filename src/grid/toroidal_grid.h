@@ -28,13 +28,20 @@ namespace Grid {
 template <class T>
 class ToroidalGrid : public Grid<T> {
 public:
+    using GridIterator = typename Grid<T>::GridIterator;
+    using UnaryPredicate = typename Grid<T>::UnaryPredicate;
+
     ToroidalGrid(int size_x_, int size_y_);
     virtual ~ToroidalGrid() override;
 
     virtual T &operator()(int x, int y) override;
     virtual const T &operator()(int x, int y) const override;
     /* Get the Moore neigbors of a cell, omitting the center */
-    virtual std::vector<T> moore_neighbors(const typename Grid<T>::GridIterator &it) const override;
+    virtual std::vector<T> moore_neighbors(const GridIterator &it) const override;
+    /* Count the Moore neighbors of a cell matching the given predicate,
+     * omitting the center.
+     */
+    virtual int moore_neighbors_cnt_if(const GridIterator &it, UnaryPredicate pred) const override;
 };
 
 template <class T>
@@ -84,6 +91,26 @@ std::vector<T> ToroidalGrid<T>::moore_neighbors(const typename Grid<T>::GridIter
         }
     }
     return neighbors;
+}
+
+template <class T>
+int ToroidalGrid<T>::moore_neighbors_cnt_if(const GridIterator &it, UnaryPredicate pred) const
+{
+    int v_pos = it - this->begin();
+    int x_pos = v_pos / this->get_size_y();
+    int y_pos = v_pos % this->get_size_y();
+    int cnt = 0;
+    for (int x = -1; x <= 1; ++x) {
+        for (int y = -1; y <= 1; ++y) {
+            if (x == 0 && y == 0) {
+                continue;
+            }
+            if (pred(this->operator()(x_pos + x, y_pos + y))) {
+                ++cnt;
+            }
+        }
+    }
+    return cnt;
 }
 
 };
