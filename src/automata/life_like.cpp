@@ -22,6 +22,7 @@
 #include <regex>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 namespace Automata {
 
@@ -43,17 +44,23 @@ char LifeLike::Cell::symbol() const
 LifeLike::LifeLike(int nsize_x, int nsize_y, const std::string &rule) :
     size_x(nsize_x),
     size_y(nsize_y),
+    rule_born(8),
+    rule_survive(8),
     grid(size_x, size_y),
     curr_gen(0)
 {
     /* Initialize the rules */
-    std::regex valid_rulestring("B[0-9]*/S[0-9]*");
+    std::regex valid_rulestring("B[0-8]*/S[0-8]*");
     if (!std::regex_match(rule, valid_rulestring)) {
         throw std::invalid_argument("LifeLike::LifeLike(): Bad rulestring");
     }
-    auto n = rule.find("/S");
-    rule_born = rule.substr(1, n - 1);
-    rule_survive = rule.substr(n + 2);
+    int i;
+    for (i = 1; rule[i] != '/'; ++i) {
+        rule_born[rule[i] - '0'] = true;
+    }
+    for (i += 2; rule[i]; ++i) {
+        rule_survive[rule[i] - '0'] = true;
+    }
     /* Initialize the grid */
     std::mt19937 rng {std::random_device()()};
     std::uniform_int_distribution<int> rndint(0, 2);
@@ -95,7 +102,7 @@ void LifeLike::update()
                 [](const Cell &cell){return cell.state == Cell::ALIVE;});
         if (it->state == Cell::ALIVE) {
             /* Alive cell, check for survival */
-            if (rule_survive.find('0' + neighbor_cnt) != std::string::npos) {
+            if (rule_survive[neighbor_cnt]) {
                 *new_it = Cell(Cell::ALIVE);
             } else {
                 /* Neighbor count not found in survive rule */
@@ -103,7 +110,7 @@ void LifeLike::update()
             }
         } else {
             /* Dead cell, check for new born */
-            if (rule_born.find('0' + neighbor_cnt) != std::string::npos) {
+            if (rule_born[neighbor_cnt]) {
                 *new_it = Cell(Cell::ALIVE);
             }
         }

@@ -23,6 +23,7 @@
 #include "grid/toroidal_grid.h"
 
 #include <string>
+#include <vector>
 
 namespace Automata {
 
@@ -48,8 +49,8 @@ private:
 
     int size_x;
     int size_y;
-    std::string rule_born;
-    std::string rule_survive;
+    std::vector<bool> rule_born;
+    std::vector<bool> rule_survive;
     Grid::ToroidalGrid<Cell> grid;
     unsigned long curr_gen;
 };
