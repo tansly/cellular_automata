@@ -30,7 +30,13 @@ public:
     using UnaryPredicate = bool (const T &a);
 
     Grid(int size_x_, int size_y_);
-    virtual ~Grid();
+    virtual ~Grid() = default;
+
+    Grid(const Grid &) = default;
+    Grid &operator=(const Grid &) = default;
+
+    Grid(Grid &&) = default;
+    Grid &operator=(Grid &&) = default;
 
     virtual T &operator()(int x, int y);
     virtual const T &operator()(int x, int y) const;
@@ -60,11 +66,6 @@ Grid<T>::Grid(int size_x_, int size_y_) :
     vec(size_x_ * size_y_),
     size_x(size_x_),
     size_y(size_y_)
-{
-}
-
-template <class T>
-Grid<T>::~Grid()
 {
 }
 

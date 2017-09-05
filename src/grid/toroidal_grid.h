@@ -32,7 +32,14 @@ public:
     using UnaryPredicate = typename Grid<T>::UnaryPredicate;
 
     ToroidalGrid(int size_x_, int size_y_);
-    virtual ~ToroidalGrid() override;
+    virtual ~ToroidalGrid() = default;
+
+    ToroidalGrid(const ToroidalGrid &) = default;
+    ToroidalGrid &operator=(const ToroidalGrid &) = default;
+
+    ToroidalGrid(ToroidalGrid &&) = default;
+    ToroidalGrid &operator=(ToroidalGrid &&) = default;
+
 
     virtual T &operator()(int x, int y) override;
     virtual const T &operator()(int x, int y) const override;
@@ -47,11 +54,6 @@ public:
 template <class T>
 ToroidalGrid<T>::ToroidalGrid(int size_x_, int size_y_) :
     Grid<T>(size_x_, size_y_)
-{
-}
-
-template <class T>
-ToroidalGrid<T>::~ToroidalGrid()
 {
 }
 
