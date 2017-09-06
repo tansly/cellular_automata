@@ -38,12 +38,22 @@ const Curses::Color &LifeLike::Cell::color() const
 
 char LifeLike::Cell::symbol() const
 {
-    return '*';
+    return state == ALIVE ? '*' : ' ';
 }
 
-LifeLike::LifeLike(int nsize_x, int nsize_y, const std::string &rule) :
-    size_x(nsize_x),
-    size_y(nsize_y),
+void LifeLike::Cell::toggle_state()
+{
+    switch (state) {
+        case ALIVE:
+            state = DEAD;
+            break;
+        case DEAD:
+            state = ALIVE;
+            break;
+    }
+}
+
+LifeLike::LifeLike(int size_x, int size_y, const std::string &rule) :
     rule_born(8),
     rule_survive(8),
     grid(size_x, size_y),
@@ -85,7 +95,7 @@ void LifeLike::update()
      * construction (and reuse it) or is this fine?
      * Does this cause any noticeable overhead?
      */
-    decltype(grid) new_grid(size_x, size_y);
+    decltype(grid) new_grid(grid.get_size_x(), grid.get_size_y());
     auto it = grid.begin();
     auto new_it = new_grid.begin();
     for (/* it, new_it */; it != grid.end(); ++it, ++new_it) {

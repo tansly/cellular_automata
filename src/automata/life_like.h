@@ -29,13 +29,6 @@ namespace Automata {
 
 class LifeLike {
 public:
-    LifeLike(int nsize_x, int nsize_y, const std::string &rule);
-
-    void update();
-    void draw(Curses::Screen &screen) const;
-
-    unsigned long get_curr_gen() const;
-private:
     struct Cell {
         enum State { ALIVE, DEAD };
 
@@ -44,11 +37,17 @@ private:
         const Curses::Color &color() const;
         char symbol() const;
 
+        void toggle_state();
         State state;
     };
 
-    int size_x;
-    int size_y;
+    LifeLike(int size_x, int size_y, const std::string &rule);
+
+    void update();
+    void draw(Curses::Screen &screen) const;
+
+    unsigned long get_curr_gen() const;
+private:
     std::vector<bool> rule_born;
     std::vector<bool> rule_survive;
     Grid::ToroidalGrid<Cell> grid;
