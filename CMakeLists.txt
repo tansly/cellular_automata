@@ -22,7 +22,9 @@ set (TEST_SOURCES
     src/automata_test/life_like.cpp
     src/automata_test/predator_and_prey.cpp
     )
-
+set (GAME_SOURCES
+    src/game/game.cpp
+    )
 
 add_library (automata_lib
     ${AUTOMATA_SOURCES}
@@ -36,3 +38,6 @@ foreach (test_source ${TEST_SOURCES})
     add_executable (${test_exec} ${test_source})
     target_link_libraries (${test_exec} ${CURSES_LIBRARIES} automata_lib screen_lib)
 endforeach (test_source ${TEST_SOURCES})
+
+add_executable (game ${GAME_SOURCES})
+target_link_libraries (game ${CURSES_LIBRARIES} automata_lib screen_lib)
