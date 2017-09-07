@@ -59,34 +59,17 @@ LifeLike::LifeLike(int size_x, int size_y, const std::string &rule) :
     grid(size_x, size_y),
     curr_gen(0)
 {
-    /* Initialize the rules */
-    std::regex valid_rulestring("B[0-8]*/S[0-8]*");
-    if (!std::regex_match(rule, valid_rulestring)) {
-        throw std::invalid_argument("LifeLike::LifeLike(): Bad rulestring");
-    }
-    int i;
-    for (i = 1; rule[i] != '/'; ++i) {
-        rule_born[rule[i] - '0'] = true;
-    }
-    for (i += 2; rule[i]; ++i) {
-        rule_survive[rule[i] - '0'] = true;
-    }
-    /* Initialize the grid */
-    std::mt19937 rng {std::random_device()()};
-    std::uniform_int_distribution<int> rndint(0, 2);
-    for (auto it = grid.begin(); it != grid.end(); ++it) {
-        int t = rndint(rng);
-        switch (t) {
-            case 0:
-                *it = Cell(Cell::ALIVE);
-                break;
-            case 1:
-                /* FALLTHROUGH */
-            case 2:
-                *it = Cell(Cell::DEAD);
-                break;
-        }
-    }
+    init_rules(rule);
+    init_rnd_grid();
+}
+
+LifeLike::LifeLike(Grid::ToroidalGrid<Cell> ngrid, const std::string &rule) :
+    rule_born(8),
+    rule_survive(8),
+    grid(std::move(ngrid)),
+    curr_gen(0)
+{
+    init_rules(rule);
 }
 
 void LifeLike::update()
@@ -130,5 +113,40 @@ unsigned long LifeLike::get_curr_gen() const
     return curr_gen;
 }
 
+void LifeLike::init_rnd_grid()
+{
+    /* Initialize the grid */
+    std::mt19937 rng {std::random_device()()};
+    std::uniform_int_distribution<int> rndint(0, 2);
+    for (auto it = grid.begin(); it != grid.end(); ++it) {
+        int t = rndint(rng);
+        switch (t) {
+            case 0:
+                *it = Cell(Cell::ALIVE);
+                break;
+            case 1:
+                /* FALLTHROUGH */
+            case 2:
+                *it = Cell(Cell::DEAD);
+                break;
+        }
+    }
+}
+
+void LifeLike::init_rules(const std::string &rule)
+{
+    /* Initialize the rules */
+    std::regex valid_rulestring("B[0-8]*/S[0-8]*");
+    if (!std::regex_match(rule, valid_rulestring)) {
+        throw std::invalid_argument("LifeLike::LifeLike(): Bad rulestring");
+    }
+    int i;
+    for (i = 1; rule[i] != '/'; ++i) {
+        rule_born[rule[i] - '0'] = true;
+    }
+    for (i += 2; rule[i]; ++i) {
+        rule_survive[rule[i] - '0'] = true;
+    }
+}
 
 };

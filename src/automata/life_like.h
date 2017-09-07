@@ -42,12 +42,16 @@ public:
     };
 
     LifeLike(int size_x, int size_y, const std::string &rule);
+    LifeLike(Grid::ToroidalGrid<Cell> ngrid, const std::string &rule);
 
     void update();
     void draw(Curses::Screen &screen) const;
 
     unsigned long get_curr_gen() const;
 private:
+    void init_rules(const std::string &rule);
+    void init_rnd_grid();
+
     std::vector<bool> rule_born;
     std::vector<bool> rule_survive;
     Grid::ToroidalGrid<Cell> grid;
