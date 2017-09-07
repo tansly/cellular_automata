@@ -70,6 +70,9 @@ public:
      */
     template <class T>
     void draw_grid(const Grid::Grid<T> &grid) const;
+    /* TODO: Document */
+    template <class T>
+    void read_grid(Grid::Grid<T> &grid) const;
 private:
     void init_color_pairs() const;
     int max_x;
@@ -88,6 +91,46 @@ void Screen::draw_grid(const Grid::Grid<T> &grid) const
         }
     }
     refresh();
+}
+
+template <class T>
+void Screen::read_grid(Grid::Grid<T> &grid) const
+{
+    int ch, x, y;
+    draw_grid(grid);
+    curs_set(1);
+    move(0, 0);
+    while ((ch = getch()) != '\n') {
+        getyx(stdscr, y, x);
+        switch (ch) {
+            case 'h':
+                move(y, x - 1);
+                break;
+            case 'j':
+                move(y + 1, x);
+                break;
+            case 'k':
+                move(y - 1, x);
+                break;
+            case 'l':
+                move(y, x + 1);
+                break;
+            case ' ':
+                if (x < grid.get_size_x() && y < grid.get_size_y()) {
+                    T &curr = grid(x, y);
+                    curr.toggle_state();
+                    print_point(x, y, curr.symbol(), curr.color());
+                    /* Make the cursor stay at the same spot */
+                    move(y, x);
+                }
+                break;
+            default:
+                break;
+        }
+        refresh_screen();
+    }
+    curs_set(0);
+    refresh_screen();
 }
 
 };
