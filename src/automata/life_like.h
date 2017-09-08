@@ -48,6 +48,7 @@ public:
     void draw(Curses::Screen &screen) const;
 
     unsigned long get_curr_gen() const;
+    unsigned long get_population() const;
 private:
     void init_rules(const std::string &rule);
     void init_rnd_grid();
@@ -56,6 +57,7 @@ private:
     std::vector<bool> rule_survive;
     Grid::ToroidalGrid<Cell> grid;
     unsigned long curr_gen;
+    unsigned long population;
 };
 
 };

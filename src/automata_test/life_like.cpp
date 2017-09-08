@@ -36,6 +36,8 @@ int main(int argc, char **argv)
         const int rate = 100000;
         for (;;) {
             usleep(rate);
+            std::cerr << "Generation: " << automaton.get_curr_gen() << " - ";
+            std::cerr << "Population: " << automaton.get_population() << std::endl;
             automaton.draw(screen);
             automaton.update();
         }

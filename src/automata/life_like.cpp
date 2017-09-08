@@ -57,7 +57,8 @@ LifeLike::LifeLike(int size_x, int size_y, const std::string &rule) :
     rule_born(8),
     rule_survive(8),
     grid(size_x, size_y),
-    curr_gen(0)
+    curr_gen(0),
+    population(0)
 {
     init_rules(rule);
     init_rnd_grid();
@@ -70,6 +71,11 @@ LifeLike::LifeLike(Grid::ToroidalGrid<Cell> ngrid, const std::string &rule) :
     curr_gen(0)
 {
     init_rules(rule);
+    for (auto cell : grid) {
+        if (cell.state == Cell::ALIVE) {
+            ++population;
+        }
+    }
 }
 
 void LifeLike::update()
@@ -81,6 +87,7 @@ void LifeLike::update()
     decltype(grid) new_grid(grid.get_size_x(), grid.get_size_y());
     auto it = grid.begin();
     auto new_it = new_grid.begin();
+    population = 0;
     for (/* it, new_it */; it != grid.end(); ++it, ++new_it) {
         int neighbor_cnt = grid.moore_neighbors_cnt_if(it,
                 [](const Cell &cell){return cell.state == Cell::ALIVE;});
@@ -88,6 +95,7 @@ void LifeLike::update()
             /* Alive cell, check for survival */
             if (rule_survive[neighbor_cnt]) {
                 *new_it = Cell(Cell::ALIVE);
+                ++population;
             } else {
                 /* Neighbor count not found in survive rule */
                 *new_it = Cell(Cell::DEAD);
@@ -96,6 +104,7 @@ void LifeLike::update()
             /* Dead cell, check for new born */
             if (rule_born[neighbor_cnt]) {
                 *new_it = Cell(Cell::ALIVE);
+                ++population;
             }
         }
     }
@@ -113,6 +122,11 @@ unsigned long LifeLike::get_curr_gen() const
     return curr_gen;
 }
 
+unsigned long LifeLike::get_population() const
+{
+    return population;
+}
+
 void LifeLike::init_rnd_grid()
 {
     /* Initialize the grid */
@@ -123,6 +137,7 @@ void LifeLike::init_rnd_grid()
         switch (t) {
             case 0:
                 *it = Cell(Cell::ALIVE);
+                ++population;
                 break;
             case 1:
                 /* FALLTHROUGH */
