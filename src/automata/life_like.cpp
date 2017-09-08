@@ -131,19 +131,14 @@ void LifeLike::init_rnd_grid()
 {
     /* Initialize the grid */
     std::mt19937 rng {std::random_device()()};
-    std::uniform_int_distribution<int> rndint(0, 2);
+    std::uniform_real_distribution<double> rnd(0, 1);
     for (auto it = grid.begin(); it != grid.end(); ++it) {
-        int t = rndint(rng);
-        switch (t) {
-            case 0:
-                *it = Cell(Cell::ALIVE);
-                ++population;
-                break;
-            case 1:
-                /* FALLTHROUGH */
-            case 2:
-                *it = Cell(Cell::DEAD);
-                break;
+        double x = rnd(rng);
+        if (x < 0.05) {
+            *it = Cell(Cell::ALIVE);
+            ++population;
+        } else {
+            *it = Cell(Cell::DEAD);
         }
     }
 }
