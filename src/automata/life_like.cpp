@@ -71,7 +71,7 @@ LifeLike::LifeLike(Grid::ToroidalGrid<Cell> ngrid, const std::string &rule) :
     curr_gen(0)
 {
     init_rules(rule);
-    for (auto cell : grid) {
+    for (auto &cell : grid) {
         if (cell.state == Cell::ALIVE) {
             ++population;
         }
