@@ -56,6 +56,7 @@ private:
     std::vector<bool> rule_born;
     std::vector<bool> rule_survive;
     Grid::ToroidalGrid<Cell> grid;
+    Grid::ToroidalGrid<Cell> grid_next;
     unsigned long curr_gen;
     unsigned long population;
 };

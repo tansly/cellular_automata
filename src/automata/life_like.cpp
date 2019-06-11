@@ -57,6 +57,7 @@ LifeLike::LifeLike(int size_x, int size_y, const std::string &rule) :
     rule_born(8),
     rule_survive(8),
     grid(size_x, size_y),
+    grid_next(size_x, size_y),
     curr_gen(0),
     population(0)
 {
@@ -68,6 +69,7 @@ LifeLike::LifeLike(Grid::ToroidalGrid<Cell> ngrid, const std::string &rule) :
     rule_born(8),
     rule_survive(8),
     grid(std::move(ngrid)),
+    grid_next(grid.get_size_x(), grid.get_size_y()),
     curr_gen(0)
 {
     init_rules(rule);
@@ -80,35 +82,32 @@ LifeLike::LifeLike(Grid::ToroidalGrid<Cell> ngrid, const std::string &rule) :
 
 void LifeLike::update()
 {
-    /* TODO: Should we allocate the temporary grid for once during object
-     * construction (and reuse it) or is this fine?
-     * Does this cause any noticeable overhead?
-     */
-    decltype(grid) new_grid(grid.get_size_x(), grid.get_size_y());
     auto it = grid.begin();
-    auto new_it = new_grid.begin();
+    auto it_next = grid_next.begin();
     population = 0;
-    for (/* it, new_it */; it != grid.end(); ++it, ++new_it) {
+    for (/* it, it_next */; it != grid.end(); ++it, ++it_next) {
         int neighbor_cnt = grid.moore_neighbors_cnt_if(it,
                 [](const Cell &cell){return cell.state == Cell::ALIVE;});
         if (it->state == Cell::ALIVE) {
             /* Alive cell, check for survival */
             if (rule_survive[neighbor_cnt]) {
-                *new_it = Cell(Cell::ALIVE);
+                *it_next = Cell(Cell::ALIVE);
                 ++population;
             } else {
                 /* Neighbor count not found in survive rule */
-                *new_it = Cell(Cell::DEAD);
+                *it_next = Cell(Cell::DEAD);
             }
         } else {
             /* Dead cell, check for new born */
             if (rule_born[neighbor_cnt]) {
-                *new_it = Cell(Cell::ALIVE);
+                *it_next = Cell(Cell::ALIVE);
                 ++population;
+            } else {
+                *it_next = Cell(Cell::DEAD);
             }
         }
     }
-    grid = std::move(new_grid);
+    std::swap(grid, grid_next);
     ++curr_gen;
 }
 
