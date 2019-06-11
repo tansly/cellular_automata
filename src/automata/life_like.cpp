@@ -80,10 +80,6 @@ LifeLike::LifeLike(Grid::ToroidalGrid<Cell> ngrid, const std::string &rule) :
 
 void LifeLike::update()
 {
-    /* TODO: Should we allocate the temporary grid for once during object
-     * construction (and reuse it) or is this fine?
-     * Does this cause any noticeable overhead?
-     */
     decltype(grid) new_grid(grid.get_size_x(), grid.get_size_y());
     auto it = grid.begin();
     auto new_it = new_grid.begin();
