@@ -19,6 +19,7 @@ set (SCREEN_SOURCES
     )
 set (TEST_SOURCES
     src/automata_test/life.cpp
+    src/automata_test/life_nocurses.cpp
     src/automata_test/life_like.cpp
     src/automata_test/predator_and_prey.cpp
     )
